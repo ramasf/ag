@@ -18,8 +18,9 @@ export default async function handler(req, res) {
     const dolarBlue = parseFloat(dolarRes.data.blue.value_sell);
 
     const descripcionesRes = await axios.get("https://docs.google.com/spreadsheets/d/e/2PACX-1vTH1RfD5gdv7KjRlfUEoH5zTtFtva0OLPsNnVNUZ-OTczOc7UIqsisNefFgraGKBP2Ic60p4dp4nVu2/pub?output=csv");
-    const descripciones = {};
-    await new Promise((resolve) => {
+
+    const descripciones = await new Promise((resolve) => {
+      const mapa = {};
       Papa.parse(descripcionesRes.data, {
         header: true,
         skipEmptyLines: true,
@@ -27,9 +28,9 @@ export default async function handler(req, res) {
           results.data.forEach((row) => {
             const cod = (row.cod_item || '').toString().trim().toUpperCase();
             const desc = (row.descripcion || '').toString().trim();
-            if (cod && desc) descripciones[cod] = desc;
+            if (cod && desc) mapa[cod] = desc;
           });
-          resolve();
+          resolve(mapa);
         }
       });
     });
@@ -72,7 +73,7 @@ export default async function handler(req, res) {
     res.status(200).json(cacheData);
 
   } catch (error) {
-    console.error("Error:", error.message);
-    res.status(500).json({ error: "Error al obtener los productos." });
+    console.error("ERROR AL OBTENER PRODUCTOS:", error.message);
+    res.status(500).json({ error: "Error interno al procesar productos." });
   }
 }
